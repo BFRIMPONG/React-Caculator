@@ -1,15 +1,28 @@
-import ee from '../eventEmitter'
+import { createStore, compose, applyMiddleware } from 'redux';
+import rootReducer from '../actions';
+import thunk from 'redux-thunk';
 
-export const store = {
-    displayedExpression: 0,
-    get curExpression() {
-        return this.displayedExpression;
-    },
-    set newExpression(curExpression) {
-        this.displayedExpression = curExpression;
-        ee.emitEvent('displayUpdate', [this.curExpression]);
-        ee.emitEvent('historyUpdate', [this.curExpression]);
-    }
-};
+const initialState = {};
+const enhancers = [];
+const middleware = [thunk];
+
+if (process.env.NODE_ENV === 'development') {
+  const devToolsExtension = window.devToolsExtension;
+
+  if (typeof devToolsExtension === 'function') {
+    enhancers.push(devToolsExtension());
+  }
+}
+
+const composedEnhancers = compose(
+  applyMiddleware(...middleware),
+  ...enhancers
+);
+
+const store = createStore(
+  rootReducer,
+  initialState,
+  composedEnhancers
+);
 
 export default store;
